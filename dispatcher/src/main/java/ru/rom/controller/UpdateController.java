@@ -4,44 +4,49 @@ import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.rom.service.UpdateProducer;
 import ru.rom.utils.MessageUtils;
+
+import static ru.rom.module.RabbitQueue.*;
 
 @Component
 @Log4j
 public class UpdateController {
     private TelegramBot telegramBot;
-    private MessageUtils messageUtils;
+    private final MessageUtils messageUtils;
+    private final UpdateProducer updateProducer;
 
-    public UpdateController(MessageUtils messageUtils) {
+    public UpdateController(MessageUtils messageUtils, UpdateProducer updateProducer) {
         this.messageUtils = messageUtils;
+        this.updateProducer = updateProducer;
     }
 
-    public void registerBot(TelegramBot telegramBot){
+    public void registerBot(TelegramBot telegramBot) {
         this.telegramBot = telegramBot;
     }
 
-    public void processUpdate(Update update){
-        if (update == null){
+    public void processUpdate(Update update) {
+        if (update == null) {
             log.error("Received update is null");
             return;
         }
 
-        if (update.getMessage() != null){
+        if (update.getMessage() != null) {
             distributeMessagesByType(update);
-        }else {
-            log.error("Received unsupported message type" + update);
+        } else {
+            log.error("Unsupported message type is received:" + update);
         }
     }
 
     private void distributeMessagesByType(Update update) {
         var message = update.getMessage();
-        if (message.getText() != null){
+        if (message.getText() != null) {
             processTextMessage(update);
-        }else if (message.getDocument() != null){
+        } else if (message.getDocument() != null) {
             processDocMessage(update);
-        }else if (message.getPhoto() != null){
+        } else if (message.getPhoto() != null) {
             processPhotoMessage(update);
-        }else {
+        } else {
             setUnsupportedMessageTypeView(update);
         }
     }
@@ -49,18 +54,31 @@ public class UpdateController {
     private void setUnsupportedMessageTypeView(Update update) {
         var sendMessage = messageUtils.generateSendMessageWhichText(update,
                 "Неподдерживаемый тип сообщения!");
+        setView(sendMessage);
     }
 
-    private void setView(SendMessage sendMessage){
+    private void setFileIsReceivedView(Update update) {
+        var sendMessage = messageUtils.generateSendMessageWhichText(update,
+                "Файл получен! Обрабатывается...");
+        setView(sendMessage);
+
+    }
+
+    private void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);
     }
 
     private void processPhotoMessage(Update update) {
+        updateProducer.produce(PHOTO_MESSAGE_UPDATE, update);
+        setFileIsReceivedView(update);
     }
 
     private void processDocMessage(Update update) {
+        updateProducer.produce(DOC_MESSAGE_UPDATE, update);
+        setFileIsReceivedView(update);
     }
 
     private void processTextMessage(Update update) {
+        updateProducer.produce(TEXT_MESSAGE_UPDATE, update);
     }
 }

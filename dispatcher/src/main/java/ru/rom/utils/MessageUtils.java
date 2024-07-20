@@ -10,7 +10,7 @@ public class MessageUtils {
         var message = update.getMessage();
         var sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(message.getText());
+        sendMessage.setText(text);
         return sendMessage;
     }
 }
