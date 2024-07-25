@@ -1,6 +1,8 @@
 Видео с урока
 https://www.youtube.com/watch?v=zJU0ITyKon4&list=PLV_4DSIw2vvI3_a6L_z5AlNaIdFNqQlW2&index=8
 
+Запустить контейнер с rabbitmq:
+$ docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 -v rabbitmq_data:/var/lib/rabbitmq --restart=unless-stopped rabbitmq:3.11.0-management
 Флаги:
 --detach , -d   запустит контейнер в фоновом режиме и вернет идентификатор контейнера в терминал;
 --hostname   адрес контейнера для подключения к нему внутри docker из других контейнеров;
@@ -32,7 +34,14 @@ docker volume create rabbitmq_data - создать том
 
 из представленного json из поля Mountpoint взять адрес и подставить за места адреса указанного автором данного канала. У меня получилось 
 
+Windows:
 docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 -v rabbitmq_data:/var/lib/docker/volumes/rabbitmq_data/_data --restart=unless-stopped rabbitmq:3.11.0-management
+Linux:
+$ docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 -v rabbitmq_data:/var/lib/rabbitmq --restart=unless-stopped rabbitmq:3.11.0-management
 
-автору канала спасибо 
+rabbitmqctl add_user userok p@ssw0rd
+rabbitmqctl set_user_tags userok administrator
+rabbitmqctl set_permissions -p / userok ".*" ".*" ".*"
+
+автору канала спасибо
 

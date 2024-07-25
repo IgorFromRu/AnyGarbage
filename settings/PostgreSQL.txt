@@ -1,0 +1,60 @@
+Видео с урока:
+https://www.youtube.com/watch?v=rIogCnxz9kk&list=PLV_4DSIw2vvI3_a6L_z5AlNaIdFNqQlW2&index=6
+
+БД: garbage
+Пользователь: userok
+Пароль: p@ssw0rd
+
+Команда для разворачивания PostgreSQL в Docker Windows:
+docker run -d --hostname garbage --name garbage -p 5432:5432 -e POSTGRES_USER=userok -e POSTGRES_PASSWORD=p@ssw0rd -e POSTGRES_DB=garbage -v /data:d:\postgres_data --restart=unless-stopped postgres:14.5
+
+Так путь к volume может выглядеть в Linux:
+docker run -d --hostname garbage --name garbage -p 5432:5432 -e POSTGRES_USER=userok -e POSTGRES_PASSWORD=p@ssw0rd -e POSTGRES_DB=garbage -v /data:/var/lib/postgresql/data --restart=unless-stopped postgres:14.5
+
+Флаги:
+--detach , -d   запустит контейнер в фоновом режиме и вернет идентификатор контейнера;
+--hostname   адрес контейнера для подключения к нему внутри docker из других контейнеров;
+--name   имя контейнера;
+-p    порты: первый порт — тот, который мы увидим снаружи docker, а второй — тот, который внутри контейнера;
+-e  задает переменную окружения в контейнере;
+-v   примонтировать volume (том);
+--restart=unless-stopped   контейнер будет подниматься заново при каждом перезапуске системы (точнее, при запуске docker);
+
+
+
+
+Если у кого на винде 10 и intellij idea как у меня возникнут проблемы с подключением к БД
+Спасибо @Сергей Черепнин  и автору канала (в комментариях ниже они описывают проблему - оттуда и было взято решение)
+
+у меня для работы уже занят порт 5432 поэтому выдавал ошибку (не важно через intellij idea или pgAdmin подключаться)
+
+можно поменять 5432 на 5400 (если он занят в вашей системе, то выберете свободный - как проверить что порт используется или/и занят - гугл в помощь)
+
+команда у меня получается такая
+
+docker run -d --hostname garbage --name garbage -p 5400:5432 -e POSTGRES_USER=userok -e POSTGRES_PASSWORD=p@ssw0rd -e POSTGRES_DB=garbage -v /data:/var/lib/docker/volumes/postgresql/_data --restart=unless-stopped postgres:14.5
+
+То что вышло у меня:
+$ docker run -d --hostname garbage --name garbage -p 5400:5432 -e POSTGRES_USER=userok -e POSTGRES_PASSWORD=p@ssw0rd -e POSTGRES_DB=garbage -v postgresql_data:/var/lib/docker/volumes/rabbitmq_data/_data --restart=unless-stopped postgres:14.5
+
+/var/lib/docker/volumes/postgresql/_data - это то что было создано и проверено перед командой выше
+
+на всякий случай ниже команды (по крайней мере у меня так)
+
+docker volume create postgresql - создать том
+
+docker volume inspect postgresql - посмотреть том
+
+если вы уже создали образ с не правильным портом то
+
+docker ps -a - проверить какие образы есть и скопировать ID того образа который хотите удалить
+
+docker stop 044ae91f1cea - остановить не корректный образ (044ae91f1cea это мой ID у Вас будет свой)
+
+docker rm 044ae91f1cea - удалить нужный образ по ID
+
+docker ps -a - проверить что точно удалили
+
+теперь можно запускать по новой с новым портом
+
+сам не специалист и недавно в тему въезжаю, поэтому если кто поправит и предложит более коротко - буду благодарен
